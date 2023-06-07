@@ -11,7 +11,10 @@ export default {
             label: {
                 en: 'Camera Name',
             },
-            type: 'Text',
+            type: 'Info',
+            options: {
+                text: { en: 'Use default camera' },
+            },
             defaultValue: '',
             section: 'settings',
             bindable: true,
