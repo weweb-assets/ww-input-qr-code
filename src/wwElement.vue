@@ -1,5 +1,5 @@
 <template>
-    <div class="ww-input-qr-code" :id="id || `ww-input-qr-code-${uid}`"></div>
+    <div class="ww-input-qr-code" :id="elementId"></div>
 </template>
 
 <script>
@@ -35,6 +35,11 @@ export default {
         });
 
         return { codeValue, setCodeValue, camerasValue, setCamerasValue };
+    },
+    computed: {
+        elementId() {
+            return this.id || `ww-input-qr-code-${this.uid}`;
+        },
     },
     mounted() {
         this.init();
@@ -75,7 +80,7 @@ export default {
                 await this.stopScan();
                 this.startScan();
             } else {
-                this.html5QrCode = new Html5Qrcode(this.id || `ww-input-qr-code-${this.uid}`);
+                this.html5QrCode = new Html5Qrcode(this.elementId);
                 this.cameras = await Html5Qrcode.getCameras();
                 if (this.cameras && this.cameras.length) {
                     const cameraNames = this.cameras.map(camera => camera.label);
@@ -130,18 +135,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.ww-input-qr-code {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-
-    &:deep(video) {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100% !important;
-        height: 100% !important;
-        transform: translate(-50%, -50%);
-    }
+.ww-input-qr-code:deep(video) {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100% !important;
+    height: 100% !important;
+    transform: translate(-50%, -50%);
 }
 </style>
