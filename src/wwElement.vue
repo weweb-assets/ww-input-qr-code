@@ -1,5 +1,5 @@
 <template>
-    <div id="ww-input-qr-code"></div>
+    <div class="ww-input-qr-code" :id="id || `ww-input-qr-code-${uid}`"></div>
 </template>
 
 <script>
@@ -9,12 +9,10 @@ export default {
     props: {
         content: { type: Object, required: true },
         uid: { type: String, required: true },
+        id: { type: String },
     },
     data() {
         return {
-            cameraId: null,
-            html5QrCode: null,
-            lastCodeTimestamp: 0,
             cameras: [],
         };
     },
@@ -77,7 +75,7 @@ export default {
                 await this.stopScan();
                 this.startScan();
             } else {
-                this.html5QrCode = new Html5Qrcode('ww-input-qr-code');
+                this.html5QrCode = new Html5Qrcode(this.id || `ww-input-qr-code-${this.uid}`);
                 this.cameras = await Html5Qrcode.getCameras();
                 if (this.cameras && this.cameras.length) {
                     const cameraNames = this.cameras.map(camera => camera.label);
@@ -113,7 +111,7 @@ export default {
                     const format = decodedResult.result.format.formatName;
 
                     if (format === 'QR_CODE') {
-                        const delay = Date.now() - this.lastCodeTimestamp;
+                        const delay = Date.now() - (this.lastCodeTimestamp || 0);
                         if (delay < 1000 && code === this.codeValue) this.lastCodeTimestamp = Date.now();
                         else {
                             this.lastCodeTimestamp = Date.now();
@@ -131,13 +129,13 @@ export default {
 };
 </script>
 
-<style lang="scss">
-#ww-input-qr-code {
+<style lang="scss" scoped>
+.ww-input-qr-code {
     width: 100%;
     height: 100%;
     overflow: hidden;
 
-    video {
+    &:deep(video) {
         position: absolute;
         top: 50%;
         left: 50%;
