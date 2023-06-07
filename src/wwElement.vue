@@ -34,7 +34,9 @@ export default {
             defaultValue: [],
         });
 
-        return { codeValue, setCodeValue, camerasValue, setCamerasValue };
+        let lastCodeTimestamp = 0;
+
+        return { codeValue, setCodeValue, camerasValue, setCamerasValue, lastCodeTimestamp };
     },
     computed: {
         elementId() {
@@ -116,7 +118,7 @@ export default {
                     const format = decodedResult.result.format.formatName;
 
                     if (format === 'QR_CODE') {
-                        const delay = Date.now() - (this.lastCodeTimestamp || 0);
+                        const delay = Date.now() - this.lastCodeTimestamp;
                         if (delay < 1000 && code === this.codeValue) this.lastCodeTimestamp = Date.now();
                         else {
                             this.lastCodeTimestamp = Date.now();
