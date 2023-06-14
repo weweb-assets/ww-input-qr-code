@@ -137,12 +137,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.ww-input-qr-code:deep(video) {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100% !important;
-    height: 100% !important;
-    transform: translate(-50%, -50%);
+.ww-input-qr-code {
+    overflow: hidden;
+    
+    &:deep(video) {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100% !important;
+        height: 100% !important;
+        transform: translate(-50%, -50%);
+    }
 }
 </style>
