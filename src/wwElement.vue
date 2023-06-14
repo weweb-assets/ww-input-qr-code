@@ -138,8 +138,9 @@ export default {
 
 <style lang="scss" scoped>
 .ww-input-qr-code {
+    border-radius: inherit;
     overflow: hidden;
-    
+
     &:deep(video) {
         position: absolute;
         top: 50%;
