@@ -48,7 +48,9 @@ export default {
             return this.id || `ww-input-qr-code-${this.uid}`;
         },
         cameraId() {
-            return this.content.cameraName || this.cameras[0]?.id;
+            return this.content.cameraName
+                ? this.cameras.find(camera => camera.label === this.content.cameraName)?.id
+                : this.cameras[0]?.id;
         },
     },
     mounted() {
