@@ -13,6 +13,7 @@ export default {
     },
     data() {
         return {
+            cameraId: undefined,
             cameras: [],
         };
     },
@@ -49,7 +50,7 @@ export default {
 
         const resizeObserver = new ResizeObserver(entries => {
             clearTimeout(this.resizeTimeout);
-            if(entries[0].contentRect.width && entries[0].contentRect.height){
+            if (entries[0].contentRect.width && entries[0].contentRect.height) {
                 this.resizeTimeout = setTimeout(async () => {
                     await this.init();
                 }, 500);
@@ -62,24 +63,27 @@ export default {
         await this.stopScan();
     },
     watch: {
-        async 'content.cameraName'(newValue, oldValue) {
-            if (oldValue !== newValue) {
-                let newCamera;
-                if (!this.content.cameraName || this.content.cameraName === '') {
-                    newCamera = this.cameras[0];
-                } else {
-                    newCamera = this.cameras.find(camera => camera.label === this.content.cameraName);
+        'content.cameraName': {
+            immediate: true,
+            async handler(newValue, oldValue) {
+                if (oldValue !== newValue) {
+                    let newCamera;
+                    if (!this.content.cameraName || this.content.cameraName === '') {
+                        newCamera = this.cameras[0];
+                    } else {
+                        newCamera = this.cameras.find(camera => camera.label === this.content.cameraName);
+                    }
+                    if (newCamera) {
+                        this.cameraId = newCamera.id;
+                        await this.init();
+                    }
                 }
-                if (newCamera) {
-                    this.cameraId = newCamera.id;
-                    await this.init();
-                }
-            }
+            },
         },
     },
     methods: {
         async init() {
-            if(this.starting) return;
+            if (this.starting) return;
             this.starting = true;
 
             if (this.html5QrCode) {
@@ -91,7 +95,7 @@ export default {
                 if (this.cameras && this.cameras.length) {
                     const cameraNames = this.cameras.map(camera => camera.label);
                     this.setCamerasValue(cameraNames);
-                    this.cameraId = this.cameras[0].id;
+                    this.cameraId = this.cameraId || this.cameras[0].id;
                 }
 
                 await this.startScan();
@@ -140,7 +144,6 @@ export default {
             } catch (error) {
                 console.error(error);
             }
-
         },
     },
 };
