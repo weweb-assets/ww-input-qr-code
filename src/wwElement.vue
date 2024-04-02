@@ -38,7 +38,6 @@ export default {
             lastCodeTimestamp: ref(0),
             starting: ref(false),
             cameras: ref([]),
-            cameraId: ref(undefined),
             html5QrCode: ref(undefined),
             resizeTimeout: ref(undefined),
         };
@@ -71,28 +70,33 @@ export default {
     },
     watch: {
         async 'content.cameraName'(newValue, oldValue) {
+            console.log('watch');
             if (oldValue === newValue) return;
             await this.refresh();
         },
     },
     methods: {
         async init() {
+            console.log('init');
             this.html5QrCode = new Html5Qrcode(this.elementId);
             this.cameras = await Html5Qrcode.getCameras();
             if (this.cameras) this.setCamerasValue(this.cameras.map(camera => camera.label));
             await this.startScan();
         },
         async refresh() {
+            console.log('refresh');
             if (!this.html5QrCode) return;
             await this.stopScan();
             await this.startScan();
         },
         async stopScan() {
+            console.log('stopScan');
             const state = this.html5QrCode.getState();
             if (state === 2) await this.html5QrCode.stop();
             await this.html5QrCode.clear();
         },
         async startScan() {
+            console.log('startScan');
             if (!this.html5QrCode || !this.cameraId) return;
 
             const rect = this.$el.getBoundingClientRect();
