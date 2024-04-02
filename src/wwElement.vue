@@ -4,18 +4,13 @@
 
 <script>
 import { Html5Qrcode } from 'html5-qrcode';
+import { ref } from 'vue';
 
 export default {
     props: {
         content: { type: Object, required: true },
         uid: { type: String, required: true },
         id: { type: String },
-    },
-    data() {
-        return {
-            cameraId: undefined,
-            cameras: [],
-        };
     },
     emits: ['trigger-event'],
     setup(props) {
@@ -35,14 +30,25 @@ export default {
             defaultValue: [],
         });
 
-        let lastCodeTimestamp = 0;
-        let starting = false;
-
-        return { codeValue, setCodeValue, camerasValue, setCamerasValue, lastCodeTimestamp, starting };
+        return {
+            codeValue,
+            setCodeValue,
+            camerasValue,
+            setCamerasValue,
+            lastCodeTimestamp: ref(0),
+            starting: ref(false),
+            cameras: ref([]),
+            cameraId: ref(undefined),
+            html5QrCode: ref(undefined),
+            resizeTimeout: ref(undefined),
+        };
     },
     computed: {
         elementId() {
             return this.id || `ww-input-qr-code-${this.uid}`;
+        },
+        cameraId() {
+            return this.content.cameraName || this.cameras[0]?.id;
         },
     },
     mounted() {
@@ -52,61 +58,36 @@ export default {
             clearTimeout(this.resizeTimeout);
             if (entries[0].contentRect.width && entries[0].contentRect.height) {
                 this.resizeTimeout = setTimeout(async () => {
-                    await this.init();
+                    await this.refresh();
                 }, 500);
             }
         });
-
         resizeObserver.observe(this.$el);
     },
     async unmounted() {
         await this.stopScan();
     },
     watch: {
-        'content.cameraName': {
-            immediate: true,
-            async handler(newValue, oldValue) {
-                if (oldValue !== newValue) {
-                    let newCamera;
-                    if (!this.content.cameraName || this.content.cameraName === '') {
-                        newCamera = this.cameras[0];
-                    } else {
-                        newCamera = this.cameras.find(camera => camera.label === this.content.cameraName);
-                    }
-                    if (newCamera) {
-                        this.cameraId = newCamera.id;
-                        await this.init();
-                    }
-                }
-            },
+        async 'content.cameraName'(newValue, oldValue) {
+            if (oldValue === newValue) return;
+            await this.refresh();
         },
     },
     methods: {
         async init() {
-            if (this.starting) return;
-            this.starting = true;
-
-            if (this.html5QrCode) {
-                await this.stopScan();
-                await this.startScan();
-            } else {
-                this.html5QrCode = new Html5Qrcode(this.elementId);
-                this.cameras = await Html5Qrcode.getCameras();
-                if (this.cameras && this.cameras.length) {
-                    const cameraNames = this.cameras.map(camera => camera.label);
-                    this.setCamerasValue(cameraNames);
-                    this.cameraId = this.cameraId || this.cameras[0].id;
-                }
-
-                await this.startScan();
-            }
-            this.starting = false;
+            this.html5QrCode = new Html5Qrcode(this.elementId);
+            this.cameras = await Html5Qrcode.getCameras();
+            if (this.cameras) this.setCamerasValue(this.cameras.map(camera => camera.label));
+            await this.startScan();
+        },
+        async refresh() {
+            if (!this.html5QrCode) return;
+            await this.stopScan();
+            await this.startScan();
         },
         async stopScan() {
             const state = this.html5QrCode.getState();
-            if (state === 2) {
-                await this.html5QrCode.stop();
-            }
+            if (state === 2) await this.html5QrCode.stop();
             await this.html5QrCode.clear();
         },
         async startScan() {
@@ -116,33 +97,28 @@ export default {
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
-
             try {
                 await this.html5QrCode.start(
                     this.cameraId,
-                    {
-                        aspectRatio: isNaN(aspectRatio) ? 9 / 16 : aspectRatio,
-                    },
+                    { aspectRatio: isNaN(aspectRatio) ? 9 / 16 : aspectRatio },
                     (decodedText, decodedResult) => {
                         const code = decodedText;
                         const format = decodedResult.result.format.formatName;
 
                         if (format === 'QR_CODE') {
                             const delay = Date.now() - this.lastCodeTimestamp;
-                            if (delay < 1000 && code === this.codeValue) this.lastCodeTimestamp = Date.now();
-                            else {
+                            if (delay < 1000 && code === this.codeValue) {
+                                this.lastCodeTimestamp = Date.now();
+                            } else {
                                 this.lastCodeTimestamp = Date.now();
                                 this.setCodeValue(code);
-                                this.$emit('trigger-event', {
-                                    name: 'scan',
-                                    event: { code: this.codeValue },
-                                });
+                                this.$emit('trigger-event', { name: 'scan', event: { code: this.codeValue } });
                             }
                         }
                     }
                 );
             } catch (error) {
-                console.error(error);
+                wwLib.wwLog.error(error);
             }
         },
     },
