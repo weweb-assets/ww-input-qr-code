@@ -36,7 +36,6 @@ export default {
             camerasValue,
             setCamerasValue,
             lastCodeTimestamp: ref(0),
-            starting: ref(false),
             cameras: ref([]),
             html5QrCode: ref(undefined),
             resizeTimeout: ref(undefined),
