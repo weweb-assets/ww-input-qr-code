@@ -1,6 +1,6 @@
 {
     "name": "ww-input-qr-code",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "scripts": {
         "build": "weweb build",
         "serve": "weweb serve"
