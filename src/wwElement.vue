@@ -130,6 +130,7 @@ export default {
                     }
                 );
             } catch (error) {
+                console.log('error', error);
                 wwLib.wwLog.error(error);
             }
         },
