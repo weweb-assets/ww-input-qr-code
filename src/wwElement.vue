@@ -59,7 +59,7 @@ export default {
             if (entries[0].contentRect.width && entries[0].contentRect.height) {
                 this.resizeTimeout = setTimeout(async () => {
                     await this.refresh();
-                }, 500);
+                }, 5000);
             }
         });
         resizeObserver.observe(this.$el);
