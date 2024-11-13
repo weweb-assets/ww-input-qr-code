@@ -59,7 +59,7 @@ export default {
             if (entries[0].contentRect.width && entries[0].contentRect.height) {
                 this.resizeTimeout = setTimeout(async () => {
                     await this.refresh();
-                }, 5000);
+                }, 2000);
             }
         });
         resizeObserver.observe(this.$el);
@@ -75,40 +75,28 @@ export default {
     },
     methods: {
         async init() {
-            console.log('init');
             this.html5QrCode = new Html5Qrcode(this.elementId);
-            console.log('html5QrCode', this.html5QrCode);
             this.cameras = await Html5Qrcode.getCameras();
-            console.log('cameras', this.cameras);
             if (this.cameras) this.setCamerasValue(this.cameras.map(camera => camera.label));
-            console.log('camerasValue', this.camerasValue);
             await this.startScan();
-            console.log('startScan');
         },
         async refresh() {
-            console.log('refresh');
             if (!this.html5QrCode) return;
             await this.stopScan();
-            console.log('stopScan');
             await this.startScan();
-            console.log('startScan');
         },
         async stopScan() {
             const state = this.html5QrCode.getState();
-            console.log('stopScan', state);
             if (state === 2) await this.html5QrCode.stop();
-            console.log('stop');
             await this.html5QrCode.clear();
         },
         async startScan() {
-            console.log('startScan');
             if (!this.html5QrCode || !this.cameraId) return;
 
             const rect = this.$el.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
-            console.log('aspectRatio', this);
             try {
                 await this.html5QrCode.start(
                     this.cameraId,
@@ -130,7 +118,6 @@ export default {
                     }
                 );
             } catch (error) {
-                console.log('error', error);
                 wwLib.wwLog.error(error);
             }
         },
