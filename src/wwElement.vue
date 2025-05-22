@@ -4,16 +4,18 @@
 
 <script>
 import { Html5Qrcode } from 'html5-qrcode';
-import { ref } from 'vue';
+import { ref, computed, inject } from 'vue';
 
 export default {
     props: {
         content: { type: Object, required: true },
         uid: { type: String, required: true },
         id: { type: String },
+        wwElementState: { type: Object, required: true },
+        useForm: { type: Boolean, default: true },
     },
-    emits: ['trigger-event'],
-    setup(props) {
+    emits: ['trigger-event', 'add-state', 'remove-state', 'update:content:effect', 'update:sidepanel-content'],
+    setup(props, { emit }) {
         const { value: codeValue, setValue: setCodeValue } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'code',
@@ -29,6 +31,20 @@ export default {
             readonly: true,
             defaultValue: [],
         });
+
+        // Form integration
+        const useForm = inject('_wwForm:useForm', () => {});
+        
+        const fieldName = computed(() => props.content.fieldName);
+        const validation = computed(() => props.content.validation);
+        const customValidation = computed(() => props.content.customValidation);
+        const required = computed(() => props.content.required);
+
+        useForm(
+            codeValue,
+            { fieldName, validation, customValidation, required, initialValue: computed(() => '') },
+            { elementState: props.wwElementState, emit, sidepanelFormPath: 'form', setValue: setCodeValue }
+        );
 
         return {
             codeValue,
@@ -46,9 +62,24 @@ export default {
             return this.id || `ww-input-qr-code-${this.uid}`;
         },
         cameraId() {
-            return this.content.cameraName
-                ? this.cameras.find(camera => camera.label === this.content.cameraName)?.id
-                : this.cameras[0]?.id;
+            if (this.content.cameraName) {
+                return this.cameras.find(camera => camera.label === this.content.cameraName)?.id;
+            }
+            
+            if (this.content.cameraFace && this.content.cameraFace !== 'auto') {
+                const faceMapping = {
+                    'front': 'user',
+                    'back': 'environment'
+                };
+                const facingMode = faceMapping[this.content.cameraFace];
+                const camera = this.cameras.find(camera => 
+                    camera.label.toLowerCase().includes(this.content.cameraFace) ||
+                    (facingMode && camera.label.toLowerCase().includes(facingMode))
+                );
+                if (camera) return camera.id;
+            }
+            
+            return this.cameras[0]?.id;
         },
     },
     mounted() {
@@ -69,6 +100,10 @@ export default {
     },
     watch: {
         async 'content.cameraName'(newValue, oldValue) {
+            if (oldValue === newValue) return;
+            await this.refresh();
+        },
+        async 'content.cameraFace'(newValue, oldValue) {
             if (oldValue === newValue) return;
             await this.refresh();
         },
