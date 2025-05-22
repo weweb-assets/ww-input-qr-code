@@ -35,6 +35,8 @@ A camera-based QR code scanner component that provides real-time scanning capabi
 ***Exposed Variables:***
 - code: Last scanned QR code value (path: variables['current_element_uid-code'])
 - cameras: List of available camera devices (path: variables['current_element_uid-cameras'])
+- status: Current scanning status (path: variables['current_element_uid-status'])
+- hasCamera: Whether camera is available and configured (path: variables['current_element_uid-hasCamera'])
 
 ***Events:***
 - scan: Triggered when a QR code is successfully scanned. Payload: { code: string }

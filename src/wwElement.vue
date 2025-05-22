@@ -1,15 +1,5 @@
 <template>
-    <wwLayoutItemContext
-        :data="{
-            status: scanningStatus,
-            value: codeValue,
-            hasCamera: !!cameraConfig?.value,
-            cameras: camerasValue,
-        }"
-        :item="{}"
-    >
-        <div ref="qrElement" class="ww-input-qr-code" :id="elementId"></div>
-    </wwLayoutItemContext>
+    <div class="ww-input-qr-code" :id="elementId"></div>
 </template>
 
 <script>
@@ -42,6 +32,29 @@ export default {
             defaultValue: [],
         });
 
+        const { value: statusValue, setValue: setStatusValue } = wwLib.wwVariable.useComponentVariable({
+            uid: props.uid,
+            name: 'status',
+            type: 'string',
+            readonly: true,
+            defaultValue: computed(() => scanningState.value),
+        });
+
+        const { value: hasCameraValue, setValue: setHasCameraValue } = wwLib.wwVariable.useComponentVariable({
+            uid: props.uid,
+            name: 'hasCamera',
+            type: 'boolean',
+            readonly: true,
+            defaultValue: computed(() => {
+                const selection = props.content.cameraSelection;
+                if ((selection === 'custom' || !selection) && props.content.cameraId) {
+                    const camera = cameras.value.find(camera => camera.id === props.content.cameraId);
+                    return !!camera;
+                }
+                return selection === 'user' || selection === 'environment' || !selection;
+            }),
+        });
+
         // Form integration
         const useForm = inject('_wwForm:useForm', () => {});
 
@@ -54,6 +67,31 @@ export default {
             codeValue,
             { fieldName, validation, customValidation, required, initialValue: computed(() => '') },
             { elementState: props.wwElementState, emit, sidepanelFormPath: 'form', setValue: setCodeValue }
+        );
+
+        // Register local context for child elements
+        const qrScannerData = ref({
+            status: statusValue,
+            value: codeValue,
+            hasCamera: hasCameraValue,
+            cameras: camerasValue
+        });
+
+        const qrScannerMethods = {};
+
+        const qrScannerMarkdown = `### QR Scanner local context
+
+#### Data available
+- \`status\`: Current scanning status ("pending", "scanning", "success", "error")
+- \`value\`: Last scanned QR code value
+- \`hasCamera\`: Boolean indicating if camera is available and configured
+- \`cameras\`: Array of available camera device names`;
+
+        wwLib.wwElement.useRegisterElementLocalContext(
+            'qrScanner', 
+            qrScannerData.value, 
+            qrScannerMethods, 
+            qrScannerMarkdown
         );
 
         return {
@@ -105,7 +143,7 @@ export default {
                 }, 500);
             }
         });
-        resizeObserver.observe(this.$refs.qrElement);
+        resizeObserver.observe(this.$el);
     },
     async unmounted() {
         await this.stopScan();
@@ -154,7 +192,7 @@ export default {
         async startScan() {
             if (!this.html5QrCode || !this.cameraConfig?.value) return;
 
-            const rect = this.$refs.qrElement.getBoundingClientRect();
+            const rect = this.$el.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
