@@ -225,17 +225,28 @@ export default {
                     (decodedText, decodedResult) => {
                         const code = decodedText;
                         const format = decodedResult.result.format.formatName;
+                        console.log('[QR SCAN] Decoded text:', code);
+                        console.log('[QR SCAN] Format:', format);
 
                         if (format === 'QR_CODE') {
                             const delay = Date.now() - this.lastCodeTimestamp;
+                            console.log('[QR SCAN] Delay since last scan:', delay);
+                            console.log('[QR SCAN] Current codeValue:', this.codeValue);
+                            console.log('[QR SCAN] New code:', code);
+                            
                             if (delay < 1000 && code === this.codeValue) {
+                                console.log('[QR SCAN] Skipping duplicate scan');
                                 this.lastCodeTimestamp = Date.now();
                             } else {
+                                console.log('[QR SCAN] Processing new scan');
                                 this.lastCodeTimestamp = Date.now();
                                 this.setCodeValue(code);
                                 this.scanningState = 'success';
+                                console.log('[QR SCAN] Emitting scan event with code:', this.codeValue);
                                 this.$emit('trigger-event', { name: 'scan', event: { code: this.codeValue } });
                             }
+                        } else {
+                            console.log('[QR SCAN] Not a QR code, ignoring');
                         }
                     },
                     errorMessage => {
