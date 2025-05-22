@@ -222,6 +222,7 @@ export default {
                 
                 // Capture 'this' reference for use in callbacks
                 const self = this;
+                console.log('[QR SCAN] Self reference captured:', self);
                 
                 await this.html5QrCode.start(
                     cameraIdOrConstraints,
@@ -243,11 +244,14 @@ export default {
                                 self.lastCodeTimestamp = Date.now();
                             } else {
                                 console.log('[QR SCAN] Processing new scan');
+                                console.log('[QR SCAN] Self in callback:', self);
+                                console.log('[QR SCAN] Self.$emit available:', typeof self.$emit);
                                 self.lastCodeTimestamp = Date.now();
                                 self.setCodeValue(code);
                                 self.scanningState = 'success';
                                 console.log('[QR SCAN] Emitting scan event with code:', code);
                                 self.$emit('trigger-event', { name: 'scan', event: { code: code } });
+                                console.log('[QR SCAN] Event emitted successfully');
                             }
                         } else {
                             console.log('[QR SCAN] Not a QR code, ignoring');
