@@ -17,7 +17,7 @@ keywords:
 Renders a QR code scanner that uses the device camera to detect and read QR codes and other barcode formats in real-time.
 
 Properties:
-- cameraSelection: auto|environment|user|custom - Camera selection method. Default: "auto"
+- cameraSelection: environment|user|custom - Camera selection method. Default: "environment"
 - cameraId: string - Specific camera device ID (only visible when cameraSelection is "custom"). Default: ""
 - fieldName: string - Form field name for form integration. Default: ""
 - required: boolean - Whether field is required in forms. Default: false
@@ -35,7 +35,7 @@ Variables:
 
 Features:
 - Real-time QR code and barcode scanning
-- Multiple camera selection modes: auto, environment facing, user facing, or custom device ID
+- Multiple camera selection modes: environment facing, user facing, or custom device ID
 - Uses facingMode constraints for better camera selection
 - Responsive camera viewport
 - Form integration support

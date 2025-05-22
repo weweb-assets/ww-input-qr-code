@@ -17,19 +17,18 @@ export default {
             type: 'TextSelect',
             options: {
                 options: [
-                    { value: 'auto', label: 'Auto' },
                     { value: 'environment', label: 'Prefer environment facing' },
                     { value: 'user', label: 'Prefer user facing' },
                     { value: 'custom', label: 'Custom' },
                 ],
             },
-            defaultValue: 'auto',
+            defaultValue: 'environment',
             section: 'settings',
             bindable: true,
             /* wwEditor:start */
             bindingValidation: {
                 type: 'string',
-                tooltip: 'Choose camera selection method: auto, environment facing, user facing, or custom',
+                tooltip: 'Choose camera selection method: environment facing, user facing, or custom',
             },
             /* wwEditor:end */
         },

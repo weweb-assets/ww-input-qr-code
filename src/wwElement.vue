@@ -62,9 +62,9 @@ export default {
             return this.id || `ww-input-qr-code-${this.uid}`;
         },
         cameraConfig() {
-            const selection = this.content.cameraSelection || 'auto';
+            const selection = this.content.cameraSelection;
             
-            if (selection === 'custom' && this.content.cameraId) {
+            if ((selection === 'custom' || !selection) && this.content.cameraId) {
                 // Use specific camera ID
                 const camera = this.cameras.find(camera => camera.id === this.content.cameraId);
                 if (camera) {
@@ -72,16 +72,12 @@ export default {
                 }
             }
             
-            if (selection === 'environment') {
-                return { type: 'facingMode', value: 'environment' };
-            }
-            
             if (selection === 'user') {
                 return { type: 'facingMode', value: 'user' };
             }
             
-            // Auto mode - use first available camera
-            return { type: 'deviceId', value: this.cameras[0]?.id };
+            // Fallback to environment facing
+            return { type: 'facingMode', value: 'environment' };
         },
     },
     mounted() {
