@@ -172,8 +172,6 @@ export default {
                 await this.startScan();
             } catch (error) {
                 this.scanningState = 'error';
-                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
-                wwLib.wwLog.error(error);
             }
         },
         async refresh() {
@@ -196,8 +194,6 @@ export default {
                 // Ignore "Cannot clear while scan is ongoing" errors during cleanup
                 if (!error.message?.includes('Cannot clear while scan is ongoing')) {
                     this.scanningState = 'error';
-                    this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
-                    wwLib.wwLog.error(error);
                 }
             }
         },
@@ -243,15 +239,15 @@ export default {
                         }
                     },
                     errorMessage => {
-                        this.scanningState = 'error';
-                        this.$emit('trigger-event', { name: 'error', event: { error: errorMessage } });
-                        wwLib.wwLog.error(errorMessage);
+                        // QR code not found or scanning error - this is normal during scanning
+                        // Only set error state for actual errors, not "No QR code found" messages
+                        if (!errorMessage.includes('QR code found')) {
+                            this.scanningState = 'error';
+                        }
                     }
                 );
             } catch (error) {
                 this.scanningState = 'error';
-                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
-                wwLib.wwLog.error(error);
             }
         },
     },

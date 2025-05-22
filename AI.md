@@ -40,7 +40,6 @@ A camera-based QR code scanner component that provides real-time scanning capabi
 
 ***Events:***
 - scan: Triggered when a QR code is successfully scanned. Payload: { code: string }
-- error: Triggered when camera access fails or scanning errors occur. Payload: { error: string }
 
 ***Notes:***
 - Uses standard WebRTC facingMode constraints for reliable camera access
