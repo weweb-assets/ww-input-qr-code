@@ -61,25 +61,27 @@ export default {
         elementId() {
             return this.id || `ww-input-qr-code-${this.uid}`;
         },
-        cameraId() {
-            if (this.content.cameraName) {
-                return this.cameras.find(camera => camera.label === this.content.cameraName)?.id;
+        cameraConfig() {
+            const selection = this.content.cameraSelection || 'auto';
+            
+            if (selection === 'custom' && this.content.cameraId) {
+                // Use specific camera ID
+                const camera = this.cameras.find(camera => camera.id === this.content.cameraId);
+                if (camera) {
+                    return { type: 'deviceId', value: camera.id };
+                }
             }
             
-            if (this.content.cameraFace && this.content.cameraFace !== 'auto') {
-                const faceMapping = {
-                    'front': 'user',
-                    'back': 'environment'
-                };
-                const facingMode = faceMapping[this.content.cameraFace];
-                const camera = this.cameras.find(camera => 
-                    camera.label.toLowerCase().includes(this.content.cameraFace) ||
-                    (facingMode && camera.label.toLowerCase().includes(facingMode))
-                );
-                if (camera) return camera.id;
+            if (selection === 'environment') {
+                return { type: 'facingMode', value: 'environment' };
             }
             
-            return this.cameras[0]?.id;
+            if (selection === 'user') {
+                return { type: 'facingMode', value: 'user' };
+            }
+            
+            // Auto mode - use first available camera
+            return { type: 'deviceId', value: this.cameras[0]?.id };
         },
     },
     mounted() {
@@ -99,11 +101,11 @@ export default {
         await this.stopScan();
     },
     watch: {
-        async 'content.cameraName'(newValue, oldValue) {
+        async 'content.cameraSelection'(newValue, oldValue) {
             if (oldValue === newValue) return;
             await this.refresh();
         },
-        async 'content.cameraFace'(newValue, oldValue) {
+        async 'content.cameraId'(newValue, oldValue) {
             if (oldValue === newValue) return;
             await this.refresh();
         },
@@ -126,16 +128,29 @@ export default {
             await this.html5QrCode.clear();
         },
         async startScan() {
-            if (!this.html5QrCode || !this.cameraId) return;
+            if (!this.html5QrCode || !this.cameraConfig?.value) return;
 
             const rect = this.$el.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
+            
+            // Prepare camera constraints based on config type
+            let cameraIdOrConstraints;
+            const config = { aspectRatio: isNaN(aspectRatio) ? 9 / 16 : aspectRatio };
+            
+            if (this.cameraConfig.type === 'facingMode') {
+                // Use facingMode for environment/user facing
+                cameraIdOrConstraints = { facingMode: this.cameraConfig.value };
+            } else {
+                // Use specific device ID
+                cameraIdOrConstraints = this.cameraConfig.value;
+            }
+            
             try {
                 await this.html5QrCode.start(
-                    this.cameraId,
-                    { aspectRatio: isNaN(aspectRatio) ? 9 / 16 : aspectRatio },
+                    cameraIdOrConstraints,
+                    config,
                     (decodedText, decodedResult) => {
                         const code = decodedText;
                         const format = decodedResult.result.format.formatName;

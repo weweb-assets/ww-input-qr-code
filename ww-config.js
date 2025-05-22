@@ -5,35 +5,22 @@ export default {
         customSettingsPropertiesOrder: [
             'formInfobox',
             ['fieldName', 'customValidation', 'validation'],
-            'cameraName',
-            'cameraFace',
+            'cameraSelection',
+            'cameraId',
             'required',
         ],
     },
     triggerEvents: [{ name: 'scan', label: 'On scan', event: { code: '' }, default: true }],
     properties: {
-        cameraName: {
-            label: 'Camera Name',
-            type: 'Info',
-            options: { text: 'Use default camera' },
-            defaultValue: '',
-            section: 'settings',
-            bindable: true,
-            /* wwEditor:start */
-            bindingValidation: {
-                type: 'string',
-                tooltip: 'A string that is the name of the camera',
-            },
-            /* wwEditor:end */
-        },
-        cameraFace: {
-            label: 'Camera Face',
+        cameraSelection: {
+            label: 'Camera Selection',
             type: 'TextSelect',
             options: {
                 options: [
                     { value: 'auto', label: 'Auto' },
-                    { value: 'front', label: 'Front Camera' },
-                    { value: 'back', label: 'Back Camera' },
+                    { value: 'environment', label: 'Prefer environment facing' },
+                    { value: 'user', label: 'Prefer user facing' },
+                    { value: 'custom', label: 'Custom' },
                 ],
             },
             defaultValue: 'auto',
@@ -42,7 +29,21 @@ export default {
             /* wwEditor:start */
             bindingValidation: {
                 type: 'string',
-                tooltip: 'Choose between front or back camera',
+                tooltip: 'Choose camera selection method: auto, environment facing, user facing, or custom',
+            },
+            /* wwEditor:end */
+        },
+        cameraId: {
+            label: 'Camera ID',
+            type: 'Text',
+            defaultValue: '',
+            section: 'settings',
+            bindable: true,
+            hidden: content => content.cameraSelection !== 'custom',
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'Specific camera device ID to use',
             },
             /* wwEditor:end */
         },
