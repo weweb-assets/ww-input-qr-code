@@ -8,7 +8,7 @@
         }"
         :item="{}"
     >
-        <div class="ww-input-qr-code" :id="elementId"></div>
+        <div ref="qrElement" class="ww-input-qr-code" :id="elementId"></div>
     </wwLayoutItemContext>
 </template>
 
@@ -105,7 +105,7 @@ export default {
                 }, 500);
             }
         });
-        resizeObserver.observe(this.$el);
+        resizeObserver.observe(this.$refs.qrElement);
     },
     async unmounted() {
         await this.stopScan();
@@ -154,7 +154,7 @@ export default {
         async startScan() {
             if (!this.html5QrCode || !this.cameraConfig?.value) return;
 
-            const rect = this.$el.getBoundingClientRect();
+            const rect = this.$refs.qrElement.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
