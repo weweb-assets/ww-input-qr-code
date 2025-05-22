@@ -242,8 +242,8 @@ export default {
                                 this.lastCodeTimestamp = Date.now();
                                 this.setCodeValue(code);
                                 this.scanningState = 'success';
-                                console.log('[QR SCAN] Emitting scan event with code:', this.codeValue);
-                                this.$emit('trigger-event', { name: 'scan', event: { code: this.codeValue } });
+                                console.log('[QR SCAN] Emitting scan event with code:', code);
+                                this.$emit('trigger-event', { name: 'scan', event: { code: code } });
                             }
                         } else {
                             console.log('[QR SCAN] Not a QR code, ignoring');
