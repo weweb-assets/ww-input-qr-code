@@ -32,6 +32,10 @@ export default {
             defaultValue: [],
         });
 
+        // Define reactive state variables first
+        const scanningState = ref('pending'); // pending, scanning, success, error
+        const cameras = ref([]);
+
         const { value: statusValue, setValue: setStatusValue } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'status',
@@ -100,10 +104,10 @@ export default {
             camerasValue,
             setCamerasValue,
             lastCodeTimestamp: ref(0),
-            cameras: ref([]),
+            cameras,
             html5QrCode: ref(undefined),
             resizeTimeout: ref(undefined),
-            scanningState: ref('pending'), // pending, scanning, success, error
+            scanningState,
         };
     },
     computed: {
@@ -179,14 +183,22 @@ export default {
         },
         async stopScan() {
             try {
+                if (!this.html5QrCode) return;
                 const state = this.html5QrCode.getState();
-                if (state === 2) await this.html5QrCode.stop();
-                await this.html5QrCode.clear();
+                if (state === 2) {
+                    await this.html5QrCode.stop();
+                }
+                if (state !== 1) { // Only clear if not already cleared
+                    await this.html5QrCode.clear();
+                }
                 this.scanningState = 'pending';
             } catch (error) {
-                this.scanningState = 'error';
-                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
-                wwLib.wwLog.error(error);
+                // Ignore "Cannot clear while scan is ongoing" errors during cleanup
+                if (!error.message?.includes('Cannot clear while scan is ongoing')) {
+                    this.scanningState = 'error';
+                    this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
+                    wwLib.wwLog.error(error);
+                }
             }
         },
         async startScan() {
