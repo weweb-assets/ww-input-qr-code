@@ -1,5 +1,15 @@
 <template>
-    <div class="ww-input-qr-code" :id="elementId"></div>
+    <wwLayoutItemContext
+        :data="{
+            status: scanningStatus,
+            value: codeValue,
+            hasCamera: !!cameraConfig?.value,
+            cameras: camerasValue,
+        }"
+        :item="{}"
+    >
+        <div class="ww-input-qr-code" :id="elementId"></div>
+    </wwLayoutItemContext>
 </template>
 
 <script>
@@ -34,7 +44,7 @@ export default {
 
         // Form integration
         const useForm = inject('_wwForm:useForm', () => {});
-        
+
         const fieldName = computed(() => props.content.fieldName);
         const validation = computed(() => props.content.validation);
         const customValidation = computed(() => props.content.customValidation);
@@ -55,15 +65,19 @@ export default {
             cameras: ref([]),
             html5QrCode: ref(undefined),
             resizeTimeout: ref(undefined),
+            scanningState: ref('pending'), // pending, scanning, success, error
         };
     },
     computed: {
         elementId() {
             return this.id || `ww-input-qr-code-${this.uid}`;
         },
+        scanningStatus() {
+            return this.scanningState;
+        },
         cameraConfig() {
             const selection = this.content.cameraSelection;
-            
+
             if ((selection === 'custom' || !selection) && this.content.cameraId) {
                 // Use specific camera ID
                 const camera = this.cameras.find(camera => camera.id === this.content.cameraId);
@@ -71,11 +85,11 @@ export default {
                     return { type: 'deviceId', value: camera.id };
                 }
             }
-            
+
             if (selection === 'user') {
                 return { type: 'facingMode', value: 'user' };
             }
-            
+
             // Fallback to environment facing
             return { type: 'facingMode', value: 'environment' };
         },
@@ -108,10 +122,17 @@ export default {
     },
     methods: {
         async init() {
-            this.html5QrCode = new Html5Qrcode(this.elementId);
-            this.cameras = await Html5Qrcode.getCameras();
-            if (this.cameras) this.setCamerasValue(this.cameras.map(camera => camera.label));
-            await this.startScan();
+            try {
+                this.scanningState = 'pending';
+                this.html5QrCode = new Html5Qrcode(this.elementId);
+                this.cameras = await Html5Qrcode.getCameras();
+                if (this.cameras) this.setCamerasValue(this.cameras.map(camera => camera.label));
+                await this.startScan();
+            } catch (error) {
+                this.scanningState = 'error';
+                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
+                wwLib.wwLog.error(error);
+            }
         },
         async refresh() {
             if (!this.html5QrCode) return;
@@ -119,9 +140,16 @@ export default {
             await this.startScan();
         },
         async stopScan() {
-            const state = this.html5QrCode.getState();
-            if (state === 2) await this.html5QrCode.stop();
-            await this.html5QrCode.clear();
+            try {
+                const state = this.html5QrCode.getState();
+                if (state === 2) await this.html5QrCode.stop();
+                await this.html5QrCode.clear();
+                this.scanningState = 'pending';
+            } catch (error) {
+                this.scanningState = 'error';
+                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
+                wwLib.wwLog.error(error);
+            }
         },
         async startScan() {
             if (!this.html5QrCode || !this.cameraConfig?.value) return;
@@ -130,11 +158,11 @@ export default {
             if (rect.width === 0 || rect.height === 0) return;
 
             const aspectRatio = rect.width / (rect.height || (rect.width * 16) / 9);
-            
+
             // Prepare camera constraints based on config type
             let cameraIdOrConstraints;
             const config = { aspectRatio: isNaN(aspectRatio) ? 9 / 16 : aspectRatio };
-            
+
             if (this.cameraConfig.type === 'facingMode') {
                 // Use facingMode for environment/user facing
                 cameraIdOrConstraints = { facingMode: this.cameraConfig.value };
@@ -142,8 +170,9 @@ export default {
                 // Use specific device ID
                 cameraIdOrConstraints = this.cameraConfig.value;
             }
-            
+
             try {
+                this.scanningState = 'scanning';
                 await this.html5QrCode.start(
                     cameraIdOrConstraints,
                     config,
@@ -158,12 +187,20 @@ export default {
                             } else {
                                 this.lastCodeTimestamp = Date.now();
                                 this.setCodeValue(code);
+                                this.scanningState = 'success';
                                 this.$emit('trigger-event', { name: 'scan', event: { code: this.codeValue } });
                             }
                         }
+                    },
+                    errorMessage => {
+                        this.scanningState = 'error';
+                        this.$emit('trigger-event', { name: 'error', event: { error: errorMessage } });
+                        wwLib.wwLog.error(errorMessage);
                     }
                 );
             } catch (error) {
+                this.scanningState = 'error';
+                this.$emit('trigger-event', { name: 'error', event: { error: error.message || error } });
                 wwLib.wwLog.error(error);
             }
         },

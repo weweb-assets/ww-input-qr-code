@@ -1,47 +1,54 @@
 ---
 name: ww-input-qr-code
-description: A QR code scanner component that uses device camera to read QR codes and barcode formats, with camera selection capabilities and real-time scanning functionality.
-keywords:
-  - qr code scanner
-  - barcode reader
-  - camera input
-  - mobile scanner
-  - device camera
-  - code detection
-  - real-time scanning
-  - camera selection
+description: QR code scanner component that uses device camera to read QR codes and barcode formats in real-time
+keywords: [qr code, scanner, camera, barcode, mobile, form, input]
 ---
 
 #### ww-input-qr-code
 
-Renders a QR code scanner that uses the device camera to detect and read QR codes and other barcode formats in real-time.
+***Purpose:***
+A camera-based QR code scanner component that provides real-time scanning capabilities with flexible camera selection options. Integrates seamlessly with WeWeb's form system for data collection workflows.
 
-Properties:
-- cameraSelection: environment|user|custom - Camera selection method. Default: "environment"
-- cameraId: string - Specific camera device ID (only visible when cameraSelection is "custom"). Default: ""
-- fieldName: string - Form field name for form integration. Default: ""
-- required: boolean - Whether field is required in forms. Default: false
-- customValidation: boolean - Enable custom validation rules. Default: false
-- validation: Formula - Custom validation formula. Requires customValidation to be true!
-
-Slots: none
-
-Events:
-- scan: {code: string} - Triggered when a QR code is successfully scanned
-
-Variables:
-- code: string - Last scanned QR code value
-- cameras: array - List of available camera devices
-
-Features:
-- Real-time QR code and barcode scanning
-- Multiple camera selection modes: environment facing, user facing, or custom device ID
-- Uses facingMode constraints for better camera selection
-- Responsive camera viewport
-- Form integration support
+***Features:***
+- Real-time QR code and barcode detection
+- Multiple camera selection modes with facingMode constraints
+- Form integration with validation support
 - Debounced scanning to prevent duplicate reads
+- Responsive camera viewport
 
-Example:
+***Properties:***
+- cameraSelection: environment|user|custom - Camera selection method (default: "environment")
+- cameraId: string - ***CUSTOM ONLY*** Specific camera device ID when selection is "custom" (default: "")
+- fieldName: string - ***FORM ONLY*** Name for form submission when used inside a form
+- required: boolean - ***FORM ONLY*** Whether field is required (default: false)
+- customValidation: boolean - ***FORM ONLY*** Enable custom validation (default: false)
+- validation: Formula - ***FORM ONLY*** Custom validation formula (returns true if valid)
+
+***Slots:*** none
+
+***Context data (only accessible to this element and its children):***
+- context.local.data?.['status'] - Current scanning status: "pending", "scanning", "success", "error"
+- context.local.data?.['value'] - Last scanned QR code value
+- context.local.data?.['hasCamera'] - Whether a camera is available and configured
+- context.local.data?.['cameras'] - List of available camera device names
+
+***Exposed Variables:***
+- code: Last scanned QR code value (path: variables['current_element_uid-code'])
+- cameras: List of available camera devices (path: variables['current_element_uid-cameras'])
+
+***Events:***
+- scan: Triggered when a QR code is successfully scanned. Payload: { code: string }
+- error: Triggered when camera access fails or scanning errors occur. Payload: { error: string }
+
+***Notes:***
+- Uses standard WebRTC facingMode constraints for reliable camera access
+- Environment facing (back camera) is default for optimal QR scanning experience
+- Custom mode allows specific camera device ID selection for advanced use cases
+- When used inside a form container, enables form submission and validation features
+- Status remains "success" after successful scan (no auto-reset)
+
+***Example:***
+Basic QR scanner for inventory management:
 <elements>
-{"uid":0,"tag":"ww-input-qr-code","name":"QR Scanner","props":{"default":{"cameraSelection":"environment","fieldName":"scannedCode","required":true,"customValidation":false}}}
+{"uid":0,"tag":"ww-input-qr-code","name":"Inventory Scanner","props":{"default":{"cameraSelection":"environment","fieldName":"productCode","required":true,"customValidation":false}}}
 </elements>

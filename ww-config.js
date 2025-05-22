@@ -10,7 +10,10 @@ export default {
             'required',
         ],
     },
-    triggerEvents: [{ name: 'scan', label: 'On scan', event: { code: '' }, default: true }],
+    triggerEvents: [
+        { name: 'scan', label: 'On scan', event: { code: '' }, default: true },
+        { name: 'error', label: 'On error', event: { error: '' } }
+    ],
     properties: {
         cameraSelection: {
             label: 'Camera Selection',
