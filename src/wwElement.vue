@@ -219,6 +219,10 @@ export default {
 
             try {
                 this.scanningState = 'scanning';
+                
+                // Capture 'this' reference for use in callbacks
+                const self = this;
+                
                 await this.html5QrCode.start(
                     cameraIdOrConstraints,
                     config,
@@ -229,21 +233,21 @@ export default {
                         console.log('[QR SCAN] Format:', format);
 
                         if (format === 'QR_CODE') {
-                            const delay = Date.now() - this.lastCodeTimestamp;
+                            const delay = Date.now() - self.lastCodeTimestamp;
                             console.log('[QR SCAN] Delay since last scan:', delay);
-                            console.log('[QR SCAN] Current codeValue:', this.codeValue);
+                            console.log('[QR SCAN] Current codeValue:', self.codeValue);
                             console.log('[QR SCAN] New code:', code);
                             
-                            if (delay < 1000 && code === this.codeValue) {
+                            if (delay < 1000 && code === self.codeValue) {
                                 console.log('[QR SCAN] Skipping duplicate scan');
-                                this.lastCodeTimestamp = Date.now();
+                                self.lastCodeTimestamp = Date.now();
                             } else {
                                 console.log('[QR SCAN] Processing new scan');
-                                this.lastCodeTimestamp = Date.now();
-                                this.setCodeValue(code);
-                                this.scanningState = 'success';
+                                self.lastCodeTimestamp = Date.now();
+                                self.setCodeValue(code);
+                                self.scanningState = 'success';
                                 console.log('[QR SCAN] Emitting scan event with code:', code);
-                                this.$emit('trigger-event', { name: 'scan', event: { code: code } });
+                                self.$emit('trigger-event', { name: 'scan', event: { code: code } });
                             }
                         } else {
                             console.log('[QR SCAN] Not a QR code, ignoring');
