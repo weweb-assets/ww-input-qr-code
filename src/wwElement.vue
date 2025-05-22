@@ -222,7 +222,6 @@ export default {
                 
                 // Capture 'this' reference for use in callbacks
                 const self = this;
-                console.log('[QR SCAN] Self reference captured:', self);
                 
                 await this.html5QrCode.start(
                     cameraIdOrConstraints,
@@ -230,31 +229,18 @@ export default {
                     (decodedText, decodedResult) => {
                         const code = decodedText;
                         const format = decodedResult.result.format.formatName;
-                        console.log('[QR SCAN] Decoded text:', code);
-                        console.log('[QR SCAN] Format:', format);
 
                         if (format === 'QR_CODE') {
                             const delay = Date.now() - self.lastCodeTimestamp;
-                            console.log('[QR SCAN] Delay since last scan:', delay);
-                            console.log('[QR SCAN] Current codeValue:', self.codeValue);
-                            console.log('[QR SCAN] New code:', code);
                             
                             if (delay < 1000 && code === self.codeValue) {
-                                console.log('[QR SCAN] Skipping duplicate scan');
                                 self.lastCodeTimestamp = Date.now();
                             } else {
-                                console.log('[QR SCAN] Processing new scan');
-                                console.log('[QR SCAN] Self in callback:', self);
-                                console.log('[QR SCAN] Self.$emit available:', typeof self.$emit);
                                 self.lastCodeTimestamp = Date.now();
                                 self.setCodeValue(code);
                                 self.scanningState = 'success';
-                                console.log('[QR SCAN] Emitting scan event with code:', code);
                                 self.$emit('trigger-event', { name: 'scan', event: { code: code } });
-                                console.log('[QR SCAN] Event emitted successfully');
                             }
-                        } else {
-                            console.log('[QR SCAN] Not a QR code, ignoring');
                         }
                     },
                     errorMessage => {
