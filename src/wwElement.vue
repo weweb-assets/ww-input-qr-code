@@ -137,26 +137,47 @@ export default {
         },
     },
     async mounted() {
+        // Debug logs for migration
+        console.log('QR Migration Debug:', {
+            contentCameraName: this.content.cameraName,
+            contentCameraSelection: this.content.cameraSelection,
+            fullContent: this.content
+        });
+
         // Migrate legacy cameraName property to new cameraSelection/cameraId system
         if (this.content.cameraName && !this.content.cameraSelection) {
+            console.log('QR Migration: Detected legacy cameraName, starting migration...');
+            
             // First get available cameras to map name to ID
             try {
                 const cameras = await Html5Qrcode.getCameras();
                 const matchingCamera = cameras.find(camera => camera.label === this.content.cameraName);
                 
-                this.$emit('update:content', {
+                console.log('QR Migration: Available cameras:', cameras);
+                console.log('QR Migration: Matching camera:', matchingCamera);
+                
+                const newContent = {
                     cameraSelection: 'custom',
                     cameraId: matchingCamera ? matchingCamera.id : this.content.cameraName,
                     cameraName: undefined, // Remove old property
-                });
+                };
+                
+                console.log('QR Migration: Emitting update:content with:', newContent);
+                this.$emit('update:content', newContent);
             } catch (error) {
+                console.log('QR Migration: Error getting cameras, using fallback:', error);
                 // Fallback: just use the name as ID and let the component handle the error
-                this.$emit('update:content', {
+                const fallbackContent = {
                     cameraSelection: 'custom',
                     cameraId: this.content.cameraName,
                     cameraName: undefined, // Remove old property
-                });
+                };
+                
+                console.log('QR Migration: Emitting fallback update:content with:', fallbackContent);
+                this.$emit('update:content', fallbackContent);
             }
+        } else {
+            console.log('QR Migration: No migration needed or already migrated');
         }
         
         await this.init();
