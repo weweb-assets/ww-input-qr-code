@@ -146,7 +146,6 @@ export default {
         /* wwEditor:start */
         // Auto-set cameraSelection to 'custom' when cameraName exists but cameraSelection doesn't
         if (this.content.cameraName && !this.content.cameraSelection) {
-            console.log('QR Migration: Auto-setting cameraSelection to custom for existing cameraName');
             this.$emit('update:content', {
                 cameraSelection: 'custom',
             });
