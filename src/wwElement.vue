@@ -141,6 +141,8 @@ export default {
         console.log('QR Migration Debug:', {
             contentCameraName: this.content.cameraName,
             contentCameraSelection: this.content.cameraSelection,
+            cameraNameType: typeof this.content.cameraName,
+            cameraNameKeys: this.content.cameraName ? Object.keys(this.content.cameraName) : null,
             fullContent: this.content
         });
 
