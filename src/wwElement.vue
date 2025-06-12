@@ -138,29 +138,34 @@ export default {
     },
     async mounted() {
         // Debug logs for migration
+        const cameraNameValue = this.content.cameraName?.value || this.content.cameraName;
+        const cameraSelectionValue = this.content.cameraSelection?.value || this.content.cameraSelection;
+        
         console.log('QR Migration Debug:', {
             contentCameraName: this.content.cameraName,
             contentCameraSelection: this.content.cameraSelection,
-            cameraNameType: typeof this.content.cameraName,
-            cameraNameKeys: this.content.cameraName ? Object.keys(this.content.cameraName) : null,
+            cameraNameValue,
+            cameraSelectionValue,
+            cameraNameType: typeof cameraNameValue,
+            cameraNameKeys: cameraNameValue ? Object.keys(cameraNameValue) : null,
             fullContent: this.content
         });
 
         // Migrate legacy cameraName property to new cameraSelection/cameraId system
-        if (this.content.cameraName && !this.content.cameraSelection) {
+        if (cameraNameValue && !cameraSelectionValue) {
             console.log('QR Migration: Detected legacy cameraName, starting migration...');
             
             // First get available cameras to map name to ID
             try {
                 const cameras = await Html5Qrcode.getCameras();
-                const matchingCamera = cameras.find(camera => camera.label === this.content.cameraName);
+                const matchingCamera = cameras.find(camera => camera.label === cameraNameValue);
                 
                 console.log('QR Migration: Available cameras:', cameras);
                 console.log('QR Migration: Matching camera:', matchingCamera);
                 
                 const newContent = {
                     cameraSelection: 'custom',
-                    cameraId: matchingCamera ? matchingCamera.id : this.content.cameraName,
+                    cameraId: matchingCamera ? matchingCamera.id : cameraNameValue,
                     cameraName: undefined, // Remove old property
                 };
                 
@@ -171,7 +176,7 @@ export default {
                 // Fallback: just use the name as ID and let the component handle the error
                 const fallbackContent = {
                     cameraSelection: 'custom',
-                    cameraId: this.content.cameraName,
+                    cameraId: cameraNameValue,
                     cameraName: undefined, // Remove old property
                 };
                 
