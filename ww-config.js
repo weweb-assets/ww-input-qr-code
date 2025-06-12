@@ -46,6 +46,21 @@ export default {
             },
             /* wwEditor:end */
         },
+        // Legacy property for migration - hidden from editor but still accessible
+        cameraName: {
+            label: 'Camera Name (Legacy)',
+            type: 'Text',
+            defaultValue: '',
+            section: 'settings',
+            bindable: true,
+            hidden: true, // Hide from editor
+            /* wwEditor:start */
+            bindingValidation: {
+                type: 'string',
+                tooltip: 'Legacy camera name property - migrated automatically',
+            },
+            /* wwEditor:end */
+        },
         /* wwEditor:start */
         form: {
             editorOnly: true,
