@@ -136,8 +136,30 @@ export default {
             return { type: 'facingMode', value: 'environment' };
         },
     },
-    mounted() {
-        this.init();
+    async mounted() {
+        // Migrate legacy cameraName property to new cameraSelection/cameraId system
+        if (this.content.cameraName && !this.content.cameraSelection) {
+            // First get available cameras to map name to ID
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                const matchingCamera = cameras.find(camera => camera.label === this.content.cameraName);
+                
+                this.$emit('update:content', {
+                    cameraSelection: 'custom',
+                    cameraId: matchingCamera ? matchingCamera.id : this.content.cameraName,
+                    cameraName: undefined, // Remove old property
+                });
+            } catch (error) {
+                // Fallback: just use the name as ID and let the component handle the error
+                this.$emit('update:content', {
+                    cameraSelection: 'custom',
+                    cameraId: this.content.cameraName,
+                    cameraName: undefined, // Remove old property
+                });
+            }
+        }
+        
+        await this.init();
 
         const resizeObserver = new ResizeObserver(entries => {
             clearTimeout(this.resizeTimeout);
