@@ -16,6 +16,7 @@ export default {
     },
     emits: ['trigger-event', 'add-state', 'remove-state', 'update:content:effect', 'update:sidepanel-content'],
     setup(props, { emit }) {
+
         const { value: codeValue, setValue: setCodeValue } = wwLib.wwVariable.useComponentVariable({
             uid: props.uid,
             name: 'code',
