@@ -10,7 +10,7 @@ export default {
             'required',
         ],
     },
-    triggerEvents: [{ name: 'scan', label: 'On scan', event: { code: '' }, default: true }],
+    triggerEvents: [{ name: 'scan', label: 'On scan', event: { code: '' }, default: true, description: "Run when a QR code is scanned." }],
     properties: {
         cameraSelection: {
             label: 'Camera Selection',
